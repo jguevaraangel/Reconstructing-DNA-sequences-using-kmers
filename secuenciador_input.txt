@@ -1,0 +1,2 @@
+Longitud subcadenas = 30
+Número de subcadenas = 1000

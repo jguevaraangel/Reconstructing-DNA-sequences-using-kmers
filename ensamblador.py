@@ -25,14 +25,14 @@ def similarity(cad, cad_e):  #Me Retorna un indice que me dice que tan parecidas
     return cont/c
         
 archivo1 = open("subcadenas.txt","r")  #Archivo que tiene las subcadenas generadas por el secuenciador
-archivo2 = open("lonsubcad.txt","r")  #Archivo que tiene la longitud de las subcadenas
+#archivo2 = open("lonsubcad.txt","r")  #Archivo que tiene la longitud de las subcadenas
 archivo3 = open("lonk.txt","r")  #Archivo que tiene la longitud de los kmers
 archivo4 = open("cadena.txt","r")  #Archivo que tiene la cadena de ADN
 archivo5 = open("assembled_cad.txt","w")  #Archvio donde se va a escribir la cadena ensamblada
 
 subcadenas = archivo1.readlines()
-lonsubcad = int(archivo2.read())
-lonk = int(archivo3.read())
+#lonsubcad = int(archivo2.read())
+lonk = int(archivo3.readline().split()[5])
 cad = archivo4.read()
 listsubcad = []
 kmers = []
@@ -41,24 +41,24 @@ assembled_cad = ""
 w = []
 y = []
 
-for sub in subcadenas:
-    subcad = ""
-    for base in sub:
-        if base != "\n": 
-            subcad += base
-    listsubcad.append(subcad)
+for i in range(len(subcadenas)):
+    subcadenas[i] = subcadenas[i].rstrip("\n")
+#print(subcadenas)
+lonsubcad = len(subcadenas[0])
  
-for sub in listsubcad:
+for sub in subcadenas:
     for i in range(lonsubcad - lonk + 1):
         kmer = ""
         for x in range(lonk):
             kmer += sub[x+i]
         kmers.append(kmer)
-
+#print(kmers)
+        
 for kmer in kmers:
     if kmer not in kmers_norepeated:
         kmers_norepeated.append(kmer)
-
+print(kmers_norepeated)
+        
 w.append(kmers_norepeated[0])
 
 for i in range(1,len(kmers_norepeated)):
@@ -69,7 +69,12 @@ for i in range(1,len(kmers_norepeated)):
     else:
         y.append(kmers_norepeated[i])
 
+    if kmers_norepeated[i] not in cad:
+        print("juemadre!")
+
+    
 while y != []:
+    i = len(y)
     for kmer in y:
         if compara(kmer,w[0]) == True:
             y.remove(kmer)
@@ -77,17 +82,23 @@ while y != []:
         elif compara2(kmer,w[-1]) == True:
             y.remove(kmer)
             w.append(kmer)
+    if i == len(y):
+        break
 
+print(w)
+    
 for kmer in w:
     assembled_cad += kmer[0]
     if kmer == w[-1]:
         assembled_cad += kmer[1:lonk]
 
+print(assembled_cad in cad)
+        
 archivo5.write(assembled_cad + "\n")
 archivo5.write(str(similarity(cad,assembled_cad)))
 
 archivo5.close()
 archivo4.close()
 archivo3.close()
-archivo2.close()
+#archivo2.close()
 archivo1.close()

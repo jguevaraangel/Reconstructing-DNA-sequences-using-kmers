@@ -1,1 +1,1 @@
-3
+longitud de los k-meros = 10
