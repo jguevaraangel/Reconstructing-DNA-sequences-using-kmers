@@ -1,1 +1,1 @@
-100
+longitud de la cadena = 40

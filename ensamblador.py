@@ -6,99 +6,182 @@ Created on Thu Apr 25 11:24:33 2019
 """
 
 """Ensambla una cadena y la compara con la cadena de ADN"""
-#Nota: Si el programa se queda ejecutando sin fin, es porque hubo un error a la hora de alinear los kmers
 
-def compara(kmer1,kmer2):  #Me retorna verdadero si la sección final de un kmer es igual a la seccion inicial de otro kmer
+import random
+from itertools import permutations
+
+def compara_arriba(kmer1,kmer2):  #Retorna verdadero si la sección final de un kmer es igual a la seccion inicial de otro kmer
     if kmer1[1:lonk] == kmer2[0:lonk - 1]:
         return True
         
-def compara2(kmer1,kmer2):
-    if kmer1[0:lonk - 1] == kmer2[1:lonk]:  #Me retorna verdadero si la sección inicial de un kmer es igual a la seccion final de otro kmer
+def compara_abajo(kmer1,kmer2):
+    if kmer1[0:lonk - 1] == kmer2[1:lonk]:  #Retorna verdadero si la sección inicial de un kmer es igual a la seccion final de otro kmer
         return True
     
-def similarity(cad, cad_e):  #Me Retorna un indice que me dice que tan parecidas son dos cadenas
+def similarity(cad, cad_e):  #Retorna un indice que me dice que tan parecidas son dos cadenas
     cont = 0
     c = len(cad)
-    for j in range(0, len(cad_e)):
+    for base in range(len(cad) - len(cad_e)):
+        cad_e += "-"
+        
+    for j in range(0, len(cad)):
         if cad[j:j + 1] == cad_e[j:j + 1]:
             cont += 1
+            
     return cont/c
+
+def kmer_list(subcadenas,lonsubcad,lonk): #Retorna una lista con todos los kmers no repetidos
+    kmers = []
+    for sub in subcadenas:
+        for i in range(lonsubcad - lonk + 1):
+            kmer = ""
+            for x in range(lonk):
+                kmer += sub[x + i]
+            if kmer not in kmers:   
+                kmers.append(kmer)
+    return kmers
+
+def alignment(cad1,cad2):
+    spaces = 0
+    dic = {}
+    a_cad = ""
+    for m in range(len(cad1)-len(cad2)):
+        spaces += 1
         
+    for j in range(spaces):
+        comb = cad2 + spaces*"-"
+        s = similarity(cad1,comb)
+        dic[s] = comb
+        spaces -= 1
+        cad2 = "-" + cad2
+        
+    comb_list = list(dic.keys())
+    maxi = max(comb_list)
+    spacecad = dic[maxi]
+    
+    for base in spacecad:
+        if base != "-":
+            a_cad += base    
+    return [a_cad, similarity(cad1,spacecad)]
+
+def permuts(kmers):
+    listed_perms = []
+    perms = list(permutations(kmers))
+    for kmer in perms:
+        l_kmer = list(kmer)
+        listed_perms.append(l_kmer)
+    return listed_perms
+
+def assembler(kmers,cad,lonk):  #Retorna una cadena o parte ella ensamblada
+    assembled_cad = ""
+    while len(assembled_cad) != len(cad):
+        test = ""
+        assembled_cad = ""
+        aligned_kmers = []
+        leftover_kmers = []
+        for kmer in kmers:
+            test += kmer[0]
+            if kmer == kmers[-1]:
+                test += kmer[1:lonk]
+                
+        if len(test) != len(cad):
+            dic = {}
+            list_cad = []
+            for perm in permuts(kmers):
+                aligned_kmers = []
+                leftover_kmers = []
+                assembled_cad = ""
+                aligned_kmers.append(perm[0])
+                for i in range(1,len(perm)):
+                    if compara_arriba(perm[i],perm[0]) == True:
+                        aligned_kmers.insert(0,perm[i])
+                    elif compara_abajo(perm[i],perm[0]) == True:
+                        aligned_kmers.append(perm[i])
+                    else:
+                        leftover_kmers.append(perm[i])
+            
+                while leftover_kmers != []:
+                    i = len(leftover_kmers)
+                    for kmer in leftover_kmers:
+                        if compara_arriba(kmer, aligned_kmers[0]) == True:
+                            leftover_kmers.remove(kmer)
+                            aligned_kmers.insert(0,kmer)
+                        elif compara_abajo(kmer, aligned_kmers[-1]) == True:
+                            leftover_kmers.remove(kmer)
+                            aligned_kmers.append(kmer)
+                    if i == len(leftover_kmers):
+                        break
+                    
+                for kmer in aligned_kmers:
+                    assembled_cad += kmer[0]
+                    if kmer == aligned_kmers[-1]:
+                        assembled_cad += kmer[1:lonk]
+                print(assembled_cad)
+                list_cad.append(assembled_cad)
+                
+            for v in list_cad:
+                dic[len(v)] = v
+            
+            cads = list(dic.keys())
+            max_len = max(cads)
+            max_cad = dic[max_len]
+            return alignment(cad,max_cad)
+        
+        aligned_kmers.append(kmers[0])
+        
+        for i in range(1,len(kmers)):
+                if compara_arriba(kmers[i],kmers[0]) == True:
+                    aligned_kmers.insert(0,kmers[i])
+                elif compara_abajo(kmers[i],kmers[0]) == True:
+                    aligned_kmers.append(kmers[i])
+                else:
+                    leftover_kmers.append(kmers[i])
+
+        while leftover_kmers != []:
+                i = len(leftover_kmers)
+                for kmer in leftover_kmers:
+                    if compara_arriba(kmer, aligned_kmers[0]) == True:
+                        leftover_kmers.remove(kmer)
+                        aligned_kmers.insert(0,kmer)
+                    elif compara_abajo(kmer, aligned_kmers[-1]) == True:
+                        leftover_kmers.remove(kmer)
+                        aligned_kmers.append(kmer)
+                if i == len(leftover_kmers):
+                    break
+    
+        for kmer in aligned_kmers:
+                assembled_cad += kmer[0]
+                if kmer == aligned_kmers[-1]:
+                    assembled_cad += kmer[1:lonk]
+        random.shuffle(kmers)
+    return [assembled_cad, similarity(cad,assembled_cad)]
+
+#BEG OF EXE
 archivo1 = open("subcadenas.txt","r")  #Archivo que tiene las subcadenas generadas por el secuenciador
-#archivo2 = open("lonsubcad.txt","r")  #Archivo que tiene la longitud de las subcadenas
-archivo3 = open("lonk.txt","r")  #Archivo que tiene la longitud de los kmers
-archivo4 = open("cadena.txt","r")  #Archivo que tiene la cadena de ADN
-archivo5 = open("assembled_cad.txt","w")  #Archvio donde se va a escribir la cadena ensamblada
+archivo2 = open("lonk.txt","r")  #Archivo que tiene la longitud de los kmers
+archivo3 = open("cadena.txt","r")  #Archivo que tiene la cadena de ADN
+archivo4 = open("assembled_cad.txt","w")  #Archvio donde se va a escribir la cadena ensamblada
 
 subcadenas = archivo1.readlines()
-#lonsubcad = int(archivo2.read())
-lonk = int(archivo3.readline().split()[5])
-cad = archivo4.read()
-listsubcad = []
-kmers = []
-kmers_norepeated = []
-assembled_cad = ""
-w = []
-y = []
-
+lonk = int(archivo2.readline().split()[5])
+cad = archivo3.read()
 for i in range(len(subcadenas)):
-    subcadenas[i] = subcadenas[i].rstrip("\n")
-#print(subcadenas)
+    subcadenas[i] = subcadenas[i].rstrip("\n") 
+
 lonsubcad = len(subcadenas[0])
- 
-for sub in subcadenas:
-    for i in range(lonsubcad - lonk + 1):
-        kmer = ""
-        for x in range(lonk):
-            kmer += sub[x+i]
-        kmers.append(kmer)
-#print(kmers)
-        
-for kmer in kmers:
-    if kmer not in kmers_norepeated:
-        kmers_norepeated.append(kmer)
-print(kmers_norepeated)
-        
-w.append(kmers_norepeated[0])
+kmers = kmer_list(subcadenas,lonsubcad,lonk)
+assembled_cad = assembler(kmers,cad,lonk)
 
-for i in range(1,len(kmers_norepeated)):
-    if compara(kmers_norepeated[i],kmers_norepeated[0]) == True:
-        w.insert(0,kmers_norepeated[i])
-    elif compara2(kmers_norepeated[i],kmers_norepeated[0]) == True:
-        w.append(kmers_norepeated[i])
-    else:
-        y.append(kmers_norepeated[i])
-
-    if kmers_norepeated[i] not in cad:
-        print("juemadre!")
-
+if len(assembled_cad[0]) != len(cad):
+    sim = str(assembled_cad[1])
+    archivo4.write("Se ensamblo una sección de la cadena: {0}".format(assembled_cad[0]+"\n"))
+    archivo4.write("Su indice de similitud es: {0}".format(sim))
     
-while y != []:
-    i = len(y)
-    for kmer in y:
-        if compara(kmer,w[0]) == True:
-            y.remove(kmer)
-            w.insert(0,kmer)
-        elif compara2(kmer,w[-1]) == True:
-            y.remove(kmer)
-            w.append(kmer)
-    if i == len(y):
-        break
+else:
+    archivo4.write("La cadena ensamblada es: " + assembled_cad[0] + "\n")
+    archivo4.write("Su índice de similitud es: " + str(similarity(cad,assembled_cad[0])))
 
-print(w)
-    
-for kmer in w:
-    assembled_cad += kmer[0]
-    if kmer == w[-1]:
-        assembled_cad += kmer[1:lonk]
-
-print(assembled_cad in cad)
-        
-archivo5.write(assembled_cad + "\n")
-archivo5.write(str(similarity(cad,assembled_cad)))
-
-archivo5.close()
 archivo4.close()
 archivo3.close()
-#archivo2.close()
+archivo2.close()
 archivo1.close()

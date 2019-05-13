@@ -1,2 +1,2 @@
-Longitud subcadenas = 30
-Número de subcadenas = 1000
+﻿Longitud subcadenas = 7
+Número de subcadenas = 100

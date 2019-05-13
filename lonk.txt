@@ -1,1 +1,1 @@
-longitud de los k-meros = 10
+longitud de los k-meros = 6
