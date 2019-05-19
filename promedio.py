@@ -9,58 +9,44 @@ import secuencia_de_adn
 import secuenciador
 import ensamblador
 import numpy
+import matplotlib.pyplot as plt
 
 def indices_sim(loncad,lonsubcad,numsubcad,lonk):
     cad = ""
-    indices = []
     bases_nitro = ["A","T","C","G"]
     
     cadena = secuencia_de_adn.cad_adn(loncad,cad,bases_nitro)
     subcadenas = secuenciador.subcads(lonsubcad,numsubcad,cadena)
     kmers = ensamblador.kmer_list(subcadenas,lonsubcad,lonk)
     indice = ensamblador.assembler(kmers,cadena,lonk)[1]
-    indices.append(indice)
+    return indice
 
 def promedio_desviacion(indices):   
     sumaprom = 0
-    sumades = 0
     for i in indices:
-        sumaprom += i
-        sumades += i**2
-        
+        sumaprom += i        
     promedio = sumaprom/len(indices)
-    promedio2 = sumades/len(indices)
-    des = numpy.sqrt(promedio2 - (promedio)**2)
+    des = numpy.sqrt((i - promedio)**2/(len(indices)))
     return [promedio, des]
-    
-archivo1 = open("loncad.txt","r")
-archivo2 = open("secuenciador_input.txt","r")
-archivo3 = open("lonk.txt","r")
-#loncad = 50
-#lonsubcad = 8
-#numsubcad = 100
-#lonk = 7
-ejey = []
-ejey.append(indices_sim(50,8,100,7))
-print(ejey)
 
-#for i in range(50):
-#    cads = secuencia_de_adn.cad_adn(loncad,cad,bases_nitro)
-#    subcadenas = secuenciador.subcads(lonsubcad,numsubcad,cads)
-#    kmers = ensamblador.kmer_list(subcadenas,lonsubcad,lonk)
-#    indice = ensamblador.assembler(kmers,cads,lonk)[1]
-#    indices.append(indice)
-# 
-#sumaprom = 0
-#sumades = 0
-#for i in indices:
-#    sumaprom += i
-#    sumades += i**2
-#promedio = sumaprom/len(indices)
-#promedio2 = sumades/len(indices)
-#des = numpy.sqrt(promedio2 - (promedio)**2)
-#print(promedio,"+/-",des)
-    
-archivo3.close()
-archivo2.close()
-archivo1.close()
+def grafica(loncad,lonsubcad,numsubcad,lonk):    
+    ejey = []
+    indices = []
+    ejex = []
+    y_errorbar = []
+    for i in range(lonsubcad - lonk):
+        ejex.append(lonk+i) 
+        for y in range(100):
+            ind = indices_sim(loncad,lonsubcad,numsubcad,lonk+i)
+            indices.append(ind)
+        ejey.append(promedio_desviacion(indices)[0])
+        y_errorbar.append(promedio_desviacion(indices)[1])
+    plt.plot(ejex,ejey,"bo",ms=4)
+    plt.errorbar(ejex,ejey,yerr=y_errorbar,color="red",ecolor="green")
+    plt.xlabel("Número de kmers")
+    plt.ylabel("Indice de similitud")
+    plt.title("Variación del indice de similitud respecto al número de kmers")
+    plt.show()
+
+#BEG OF EXE
+grafica(100,30,100,3)

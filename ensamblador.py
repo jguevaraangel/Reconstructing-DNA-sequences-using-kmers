@@ -11,11 +11,11 @@ import random
 from itertools import permutations
 
 def compara_arriba(kmer1,kmer2):  #Retorna verdadero si la sección final de un kmer es igual a la seccion inicial de otro kmer
-    if kmer1[1:lonk] == kmer2[0:lonk - 1]:
+    if kmer1[1:len(kmer1)] == kmer2[0:len(kmer2) - 1]:
         return True
         
 def compara_abajo(kmer1,kmer2):
-    if kmer1[0:lonk - 1] == kmer2[1:lonk]:  #Retorna verdadero si la sección inicial de un kmer es igual a la seccion final de otro kmer
+    if kmer1[0:len(kmer1) - 1] == kmer2[1:len(kmer2)]:  #Retorna verdadero si la sección inicial de un kmer es igual a la seccion final de otro kmer
         return True
     
 def similarity(cad, cad_e):  #Retorna un indice que me dice que tan parecidas son dos cadenas
@@ -41,14 +41,14 @@ def kmer_list(subcadenas,lonsubcad,lonk): #Retorna una lista con todos los kmers
                 kmers.append(kmer)
     return kmers
 
-def alignment(cad1,cad2):
+def alignment(cad1,cad2): #Retorna una cadena y un indice
     spaces = 0
     dic = {}
     a_cad = ""
     for m in range(len(cad1)-len(cad2)):
         spaces += 1
         
-    for j in range(spaces):
+    for j in range(spaces+1):
         comb = cad2 + spaces*"-"
         s = similarity(cad1,comb)
         dic[s] = comb
@@ -64,16 +64,9 @@ def alignment(cad1,cad2):
             a_cad += base    
     return [a_cad, similarity(cad1,spacecad)]
 
-def permuts(kmers):
-    listed_perms = []
-    perms = list(permutations(kmers))
-    for kmer in perms:
-        l_kmer = list(kmer)
-        listed_perms.append(l_kmer)
-    return listed_perms
-
-def assembler(kmers,cad,lonk):  #Retorna una cadena o parte ella ensamblada
+def assembler(kmers,cad,lonk):  #Retorna una cadena o subcadena ensamblada
     assembled_cad = ""
+    
     while len(assembled_cad) != len(cad):
         test = ""
         assembled_cad = ""
@@ -85,47 +78,33 @@ def assembler(kmers,cad,lonk):  #Retorna una cadena o parte ella ensamblada
                 test += kmer[1:lonk]
                 
         if len(test) != len(cad):
-            dic = {}
-            list_cad = []
-            for perm in permuts(kmers):
-                aligned_kmers = []
-                leftover_kmers = []
-                assembled_cad = ""
-                aligned_kmers.append(perm[0])
-                for i in range(1,len(perm)):
-                    if compara_arriba(perm[i],perm[0]) == True:
-                        aligned_kmers.insert(0,perm[i])
-                    elif compara_abajo(perm[i],perm[0]) == True:
-                        aligned_kmers.append(perm[i])
-                    else:
-                        leftover_kmers.append(perm[i])
+            aligned_kmers.append(kmers[0])
+            for i in range(1,len(kmers)):
+                if compara_arriba(kmers[i],kmers[0]) == True:
+                    aligned_kmers.insert(0,kmers[i])
+                elif compara_abajo(kmers[i],kmers[0]) == True:
+                    aligned_kmers.append(kmers[i])
+                else:
+                    leftover_kmers.append(kmers[i])
             
-                while leftover_kmers != []:
-                    i = len(leftover_kmers)
-                    for kmer in leftover_kmers:
-                        if compara_arriba(kmer, aligned_kmers[0]) == True:
-                            leftover_kmers.remove(kmer)
-                            aligned_kmers.insert(0,kmer)
-                        elif compara_abajo(kmer, aligned_kmers[-1]) == True:
-                            leftover_kmers.remove(kmer)
-                            aligned_kmers.append(kmer)
-                    if i == len(leftover_kmers):
-                        break
+            while leftover_kmers != []:
+                t = len(leftover_kmers)
+                for kmer in leftover_kmers:
+                    if compara_arriba(kmer, aligned_kmers[0]) == True:
+                        leftover_kmers.remove(kmer)
+                        aligned_kmers.insert(0,kmer)
+                    elif compara_abajo(kmer, aligned_kmers[-1]) == True:
+                        leftover_kmers.remove(kmer)
+                        aligned_kmers.append(kmer)
+                if t == len(leftover_kmers):
+                    break
                     
-                for kmer in aligned_kmers:
-                    assembled_cad += kmer[0]
-                    if kmer == aligned_kmers[-1]:
-                        assembled_cad += kmer[1:lonk]
-                print(assembled_cad)
-                list_cad.append(assembled_cad)
+            for kmer in aligned_kmers:
+                assembled_cad += kmer[0]
+                if kmer == aligned_kmers[-1]:
+                    assembled_cad += kmer[1:lonk]
                 
-            for v in list_cad:
-                dic[len(v)] = v
-            
-            cads = list(dic.keys())
-            max_len = max(cads)
-            max_cad = dic[max_len]
-            return alignment(cad,max_cad)
+            return alignment(cad,assembled_cad)
         
         aligned_kmers.append(kmers[0])
         
@@ -173,7 +152,7 @@ kmers = kmer_list(subcadenas,lonsubcad,lonk)
 assembled_cad = assembler(kmers,cad,lonk)
 
 if len(assembled_cad[0]) != len(cad):
-    sim = str(assembled_cad[1])
+    sim = str(assembled_cad[1]) 
     archivo4.write("Se ensamblo una sección de la cadena: {0}".format(assembled_cad[0]+"\n"))
     archivo4.write("Su indice de similitud es: {0}".format(sim))
     
