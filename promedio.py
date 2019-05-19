@@ -43,9 +43,9 @@ def grafica(loncad,lonsubcad,numsubcad,lonk):
         y_errorbar.append(promedio_desviacion(indices)[1])
     plt.plot(ejex,ejey,"bo",ms=4)
     plt.errorbar(ejex,ejey,yerr=y_errorbar,color="red",ecolor="green")
-    plt.xlabel("Número de kmers")
+    plt.xlabel("Longitud del kmer")
     plt.ylabel("Indice de similitud")
-    plt.title("Variación del indice de similitud respecto al número de kmers")
+    plt.title("Variación del indice de similitud respecto a la longitud del kmer")
     plt.show()
 
 #BEG OF EXE
