@@ -8,7 +8,6 @@ Created on Thu Apr 25 11:24:33 2019
 """Ensambla una cadena y la compara con la cadena de ADN"""
 
 import random
-from itertools import permutations
 
 def compara_arriba(kmer1,kmer2):  #Retorna verdadero si la sección final de un kmer es igual a la seccion inicial de otro kmer
     if kmer1[1:len(kmer1)] == kmer2[0:len(kmer2) - 1]:
