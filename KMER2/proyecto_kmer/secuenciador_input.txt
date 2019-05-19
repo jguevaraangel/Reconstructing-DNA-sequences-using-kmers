@@ -1,2 +1,0 @@
-﻿Longitud subcadenas = 8
-Número de subcadenas = 100
