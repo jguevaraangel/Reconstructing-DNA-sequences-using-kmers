@@ -1,2 +1,0 @@
-La cadena ensamblada es: AGACCCACGTATGTGTGTTTTTAAAACTTACGGTGGACCGAGCCCATTAT
-Su índice de similitud es: 1.0
