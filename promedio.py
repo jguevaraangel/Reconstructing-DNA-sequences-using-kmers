@@ -1,52 +1,54 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 10 15:32:00 2019
-
-
-@author: juanc
-"""
-import secuencia_de_adn
+import secuenciaDeADN
 import secuenciador
 import ensamblador
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 
-def indices_sim(loncad,lonsubcad,numsubcad,lonk):
-    cad = ""
-    bases_nitro = ["A","T","C","G"]
-    
-    cadena = secuencia_de_adn.cad_adn(loncad,cad,bases_nitro)
-    subcadenas = secuenciador.subcads(lonsubcad,numsubcad,cadena)
-    kmers = ensamblador.kmer_list(subcadenas,lonsubcad,lonk)
-    indice = ensamblador.assembler(kmers,cadena,lonk)[1]
+
+def indiceDeSimilaridad(longitudCadena, longitudSubcadena, numSubcadenas, longitudK):
+    cadena = ""
+    basesNitrogenadas = ["A", "T", "C", "G"]
+
+    cadena = secuenciaDeADN.cadenaDeADN(
+        longitudCadena, cadena, basesNitrogenadas)
+    subcadenas = secuenciador.subcads(longitudSubcadena, numSubcadenas, cadena)
+    kmers = ensamblador.kmer_list(subcadenas, longitudSubcadena, longitudK)
+    indice = ensamblador.assembler(kmers, cadena, longitudK)[1]
     return indice
 
-def promedio_desviacion(indices):   
-    sumaprom = 0
-    for i in indices:
-        sumaprom += i        
-    promedio = sumaprom/len(indices)
-    des = numpy.sqrt((i - promedio)**2/(len(indices)))
-    return [promedio, des]
 
-def grafica(loncad,lonsubcad,numsubcad,lonk):    
-    ejey = []
+def desviacion(indices):
+    suma = 0
+    for i in indices:
+        suma += i
+    promedio = suma/len(indices)
+    Desviacion = np.sqrt((i - promedio)**2/(len(indices)))
+    return [promedio, Desviacion]
+
+
+def grafica(longitudCadena, longitudSubcadena, numeroSubcadenas, longitudK):
+    ejeY = []
     indices = []
-    ejex = []
-    y_errorbar = []
-    for i in range(lonsubcad - lonk):
-        ejex.append(lonk+i) 
+    ejeX = []
+    errorY = []
+
+    for i in range(longitudSubcadena - longitudK):
+        ejeX.append(longitudK+i)
         for y in range(100):
-            ind = indices_sim(loncad,lonsubcad,numsubcad,lonk+i)
+            ind = indiceDeSimilaridad(
+                longitudCadena, longitudSubcadena, numeroSubcadenas, longitudK+i)
             indices.append(ind)
-        ejey.append(promedio_desviacion(indices)[0])
-        y_errorbar.append(promedio_desviacion(indices)[1])
-    plt.plot(ejex,ejey,"bo",ms=4)
-    plt.errorbar(ejex,ejey,yerr=y_errorbar,color="red",ecolor="green")
+        ejeY.append(desviacion(indices)[0])
+        errorY.append(desviacion(indices)[1])
+
+    plt.plot(ejeX, ejeY, "bo", ms=4)
+    plt.errorbar(ejeX, ejeY, yerr=errorY, color="red", ecolor="green")
     plt.xlabel("Longitud del kmer")
     plt.ylabel("Indice de similitud")
     plt.title("Variación del indice de similitud respecto a la longitud del kmer")
     plt.show()
 
-#BEG OF EXE
-grafica(100,30,100,3)
+
+# Inicio de Ejecucion
+
+grafica(100, 30, 100, 3)
